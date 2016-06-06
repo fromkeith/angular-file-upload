@@ -63,14 +63,33 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
             forEach(list, (some /*{File|HTMLInputElement|Object}*/) => {
                 var temp = new FileLikeObject(some);
 
-                if (this._isValidFile(temp, arrayOfFilters, options)) {
-                    var fileItem = new FileItem(this, some, options);
-                    addedFileItems.push(fileItem);
-                    this.queue.push(fileItem);
-                    this._onAfterAddingFile(fileItem);
-                } else {
+                function failedToAdd() {
                     var filter = arrayOfFilters[this._failFilterIndex];
                     this._onWhenAddingFileFailed(temp, filter, options);
+                }
+
+                if (this._isValidFile(temp, arrayOfFilters, options)) {
+                    var fileItem = new FileItem(this, some, options);
+
+                    var delayAdd = this._onBeforeAddingFile(fileItem);
+                    function addFile() {
+                        addedFileItems.push(fileItem);
+                        this.queue.push(fileItem);
+                        this._onAfterAddingFile(fileItem);
+                    }
+                    if (delayAdd !== undefined && delayAdd.done !== undefined) {
+                        delayAdd.done(function (err) {
+                            if (err) {
+                                failedToAdd();
+                                return;
+                            }
+                            addFile();
+                        });
+                    } else {
+                        addFile();
+                    }
+                } else {
+                    failedToAdd();
                 }
             });
 
@@ -227,6 +246,12 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @param {Array} fileItems
          */
         onAfterAddingAll(fileItems) {
+        }
+        /**
+         * Callback
+         * @param {FileItem} fileItem
+         */
+        onBeforeAddingFile(fileItem) {
         }
         /**
          * Callback
@@ -489,7 +514,18 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
                 this._onCompleteItem(item, response, xhr.status, headers);
             };
 
+            xhr.ontimeout = () => {
+                var headers = this._parseHeaders(xhr.getAllResponseHeaders());
+                var response = this._transformResponse(xhr.response, headers);
+                this._onErrorItem(item, response, xhr.status, headers);
+                this._onCompleteItem(item, response, xhr.status, headers);
+            };
+
             xhr.open(item.method, item.url, true);
+
+            if (item.timeout) {
+                xhr.timeout = item.timeout;
+            }
 
             xhr.withCredentials = item.withCredentials;
 
@@ -588,6 +624,13 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          */
         _onWhenAddingFileFailed(item, filter, options) {
             this.onWhenAddingFileFailed(item, filter, options);
+        }
+        /**
+         * Inner callback
+         * @param {FileItem} item
+         */
+        _onBeforeAddingFile(item) {
+            this.onBeforeAddingFile(item);
         }
         /**
          * Inner callback

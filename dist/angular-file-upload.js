@@ -231,14 +231,39 @@ return /******/ (function(modules) { // webpackBootstrap
 	            forEach(list, function (some /*{File|HTMLInputElement|Object}*/) {
 	                var temp = new FileLikeObject(some);
 	
+	                function failedToAdd() {
+	                    var filter = arrayOfFilters[this._failFilterIndex];
+	                    this._onWhenAddingFileFailed(temp, filter, options);
+	                }
+	
 	                if (_this._isValidFile(temp, arrayOfFilters, options)) {
-	                    var fileItem = new FileItem(_this, some, options);
-	                    addedFileItems.push(fileItem);
-	                    _this.queue.push(fileItem);
-	                    _this._onAfterAddingFile(fileItem);
+	                    var fileItem;
+	                    var delayAdd;
+	
+	                    (function () {
+	                        var addFile = function addFile() {
+	                            addedFileItems.push(fileItem);
+	                            this.queue.push(fileItem);
+	                            this._onAfterAddingFile(fileItem);
+	                        };
+	
+	                        fileItem = new FileItem(_this, some, options);
+	                        delayAdd = _this._onBeforeAddingFile(fileItem);
+	
+	                        if (delayAdd !== undefined && delayAdd.done !== undefined) {
+	                            delayAdd.done(function (err) {
+	                                if (err) {
+	                                    failedToAdd();
+	                                    return;
+	                                }
+	                                addFile();
+	                            });
+	                        } else {
+	                            addFile();
+	                        }
+	                    })();
 	                } else {
-	                    var filter = arrayOfFilters[_this._failFilterIndex];
-	                    _this._onWhenAddingFileFailed(temp, filter, options);
+	                    failedToAdd();
 	                }
 	            });
 	
@@ -439,6 +464,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	        FileUploader.prototype.onAfterAddingAll = function onAfterAddingAll(fileItems) {};
+	        /**
+	         * Callback
+	         * @param {FileItem} fileItem
+	         */
+	
+	
+	        FileUploader.prototype.onBeforeAddingFile = function onBeforeAddingFile(fileItem) {};
 	        /**
 	         * Callback
 	         * @param {FileItem} fileItem
@@ -739,7 +771,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	                _this5._onCompleteItem(item, response, xhr.status, headers);
 	            };
 	
+	            xhr.ontimeout = function () {
+	                var headers = _this5._parseHeaders(xhr.getAllResponseHeaders());
+	                var response = _this5._transformResponse(xhr.response, headers);
+	                _this5._onErrorItem(item, response, xhr.status, headers);
+	                _this5._onCompleteItem(item, response, xhr.status, headers);
+	            };
+	
 	            xhr.open(item.method, item.url, true);
+	
+	            if (item.timeout) {
+	                xhr.timeout = item.timeout;
+	            }
 	
 	            xhr.withCredentials = item.withCredentials;
 	
@@ -844,6 +887,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        FileUploader.prototype._onWhenAddingFileFailed = function _onWhenAddingFileFailed(item, filter, options) {
 	            this.onWhenAddingFileFailed(item, filter, options);
+	        };
+	        /**
+	         * Inner callback
+	         * @param {FileItem} item
+	         */
+	
+	
+	        FileUploader.prototype._onBeforeAddingFile = function _onBeforeAddingFile(item) {
+	            this.onBeforeAddingFile(item);
 	        };
 	        /**
 	         * Inner callback
