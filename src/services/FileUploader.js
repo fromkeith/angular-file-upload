@@ -72,10 +72,11 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
                     var fileItem = new FileItem(this, some, options);
 
                     var delayAdd = this._onBeforeAddingFile(fileItem);
+                    var that = this;
                     function addFile() {
                         addedFileItems.push(fileItem);
-                        this.queue.push(fileItem);
-                        this._onAfterAddingFile(fileItem);
+                        that.queue.push(fileItem);
+                        that._onAfterAddingFile(fileItem);
                     }
                     if (delayAdd !== undefined && delayAdd.done !== undefined) {
                         delayAdd.done(function (err) {

@@ -239,16 +239,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	                if (_this._isValidFile(temp, arrayOfFilters, options)) {
 	                    var fileItem;
 	                    var delayAdd;
+	                    var that;
 	
 	                    (function () {
 	                        var addFile = function addFile() {
 	                            addedFileItems.push(fileItem);
-	                            this.queue.push(fileItem);
-	                            this._onAfterAddingFile(fileItem);
+	                            that.queue.push(fileItem);
+	                            that._onAfterAddingFile(fileItem);
 	                        };
 	
 	                        fileItem = new FileItem(_this, some, options);
 	                        delayAdd = _this._onBeforeAddingFile(fileItem);
+	                        that = _this;
 	
 	                        if (delayAdd !== undefined && delayAdd.done !== undefined) {
 	                            delayAdd.done(function (err) {
