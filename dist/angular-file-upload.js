@@ -230,16 +230,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	            forEach(list, function (some /*{File|HTMLInputElement|Object}*/) {
 	                var temp = new FileLikeObject(some);
+	                var that = _this;
 	
 	                function failedToAdd() {
-	                    var filter = arrayOfFilters[this._failFilterIndex];
-	                    this._onWhenAddingFileFailed(temp, filter, options);
+	                    var filter = arrayOfFilters[that._failFilterIndex];
+	                    that._onWhenAddingFileFailed(temp, filter, options);
 	                }
 	
 	                if (_this._isValidFile(temp, arrayOfFilters, options)) {
 	                    var fileItem;
 	                    var delayAdd;
-	                    var that;
 	
 	                    (function () {
 	                        var addFile = function addFile() {
@@ -250,7 +250,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	                        fileItem = new FileItem(_this, some, options);
 	                        delayAdd = _this._onBeforeAddingFile(fileItem);
-	                        that = _this;
 	
 	                        if (delayAdd !== undefined && delayAdd.done !== undefined) {
 	                            delayAdd.done(function (err) {

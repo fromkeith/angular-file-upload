@@ -62,17 +62,17 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
 
             forEach(list, (some /*{File|HTMLInputElement|Object}*/) => {
                 var temp = new FileLikeObject(some);
+                var that = this;
 
                 function failedToAdd() {
-                    var filter = arrayOfFilters[this._failFilterIndex];
-                    this._onWhenAddingFileFailed(temp, filter, options);
+                    var filter = arrayOfFilters[that._failFilterIndex];
+                    that._onWhenAddingFileFailed(temp, filter, options);
                 }
 
                 if (this._isValidFile(temp, arrayOfFilters, options)) {
                     var fileItem = new FileItem(this, some, options);
 
                     var delayAdd = this._onBeforeAddingFile(fileItem);
-                    var that = this;
                     function addFile() {
                         addedFileItems.push(fileItem);
                         that.queue.push(fileItem);
