@@ -10,7 +10,7 @@ angular
     .controller('AppController', ['$scope', 'FileUploader', function($scope, FileUploader) {
         var uploader = $scope.uploader = new FileUploader({
             url: '/upload',
-            concurrentUploadLimit: 5
+            concurrentUploadLimit: 2
         });
 
         // FILTERS
