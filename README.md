@@ -2,6 +2,17 @@
 
 ---
 
+## This Fork
+
+This fork makes the following changes:
+
+* Concurrent Uploads
+* XHR Uploads can be timeout
+* A fix by @denkan for multiple files being added
+* Nodejs test server for simple example...
+* A bad filter replacement... which I should remove...
+
+
 ## About
 
 **Angular File Upload** is a module for the [AngularJS](http://angularjs.org/) framework. Supports drag-n-drop upload, upload progress, validation filters and a file upload queue. It supports native HTML5 uploads, but degrades to a legacy iframe upload method for older browsers. Works with any server side platform which supports standard HTML form uploads.
