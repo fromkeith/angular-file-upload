@@ -14,5 +14,6 @@ export default {
     formData: [],
     queueLimit: Number.MAX_VALUE,
     withCredentials: false,
-    disableMultipart: false
+    disableMultipart: false,
+    concurrentUploadLimit: 1,
 };

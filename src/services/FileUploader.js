@@ -39,6 +39,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
             
             extend(this, settings, options, {
                 isUploading: false,
+                _activeUploads: [],
                 _nextIndex: 0,
                 _failFilterIndex: -1,
                 _directives: {select: [], drop: [], over: []}
@@ -133,13 +134,14 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
             var transport = this.isHTML5 ? '_xhrTransport' : '_iframeTransport';
 
             item._prepareToUploading();
-            if(this.isUploading) return;
+            if(this._activeUploads.length >= this.concurrentUploadLimit) return;
 
             this._onBeforeUploadItem(item);
             if (item.isCancel) return;
 
             item.isUploading = true;
             this.isUploading = true;
+            this._activeUploads.push(item);
             this[transport](item);
             this._render();
         }
@@ -173,7 +175,10 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
             if(!items.length) return;
 
             forEach(items, item => item._prepareToUploading());
-            items[0].upload();
+            var i, max = this.concurrentUploadLimit - this._activeUploads.length;
+            for (i = 0; i < max; i++) {
+                items[i].upload();
+            }
         }
         /**
          * Cancels all uploads
@@ -337,8 +342,13 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @returns {Number}
          * @private
          */
-        _getTotalProgress(value) {
-            if(this.removeAfterUpload) return value || 0;
+        _getTotalProgress() {
+            var value = 0;
+            var i;
+            for (i = 0; i < this._activeUploads.length; i++) {
+                value += this._activeUploads[i].progress;
+            }
+            if(this.removeAfterUpload) return (value / this._activeUploads.length) || 0;
 
             var notUploaded = this.getNotUploadedItems().length;
             var uploaded = notUploaded ? this.queue.length - notUploaded : this.queue.length;
@@ -715,11 +725,12 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @private
          */
         _onCompleteItem(item, response, status, headers) {
+            this._noLongerUploading(item);
             item._onComplete(response, status, headers);
             this.onCompleteItem(item, response, status, headers);
 
             var nextItem = this.getReadyItems()[0];
-            this.isUploading = false;
+            this.isUploading = this._activeUploads.length > 0;
 
             if(isDefined(nextItem)) {
                 nextItem.upload();
@@ -729,6 +740,18 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
             this.onCompleteAll();
             this.progress = this._getTotalProgress();
             this._render();
+        }
+        /**
+            Inner helper
+        */
+        _noLongerUploading(item) {
+            var i;
+            for (i = 0; i < this._activeUploads.length; i++) {
+                if (this._activeUploads[i] === item) {
+                    this._activeUploads.splice(i, 1);
+                    return;
+                }
+            }
         }
         /**********************
          * STATIC

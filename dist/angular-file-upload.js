@@ -151,7 +151,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    formData: [],
 	    queueLimit: Number.MAX_VALUE,
 	    withCredentials: false,
-	    disableMultipart: false
+	    disableMultipart: false,
+	    concurrentUploadLimit: 1
 	};
 
 /***/ },
@@ -203,6 +204,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	            extend(this, settings, options, {
 	                isUploading: false,
+	                _activeUploads: [],
 	                _nextIndex: 0,
 	                _failFilterIndex: -1,
 	                _directives: { select: [], drop: [], over: [] }
@@ -313,13 +315,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var transport = this.isHTML5 ? '_xhrTransport' : '_iframeTransport';
 	
 	            item._prepareToUploading();
-	            if (this.isUploading) return;
+	            if (this._activeUploads.length >= this.concurrentUploadLimit) return;
 	
 	            this._onBeforeUploadItem(item);
 	            if (item.isCancel) return;
 	
 	            item.isUploading = true;
 	            this.isUploading = true;
+	            this._activeUploads.push(item);
 	            this[transport](item);
 	            this._render();
 	        };
@@ -365,7 +368,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            forEach(items, function (item) {
 	                return item._prepareToUploading();
 	            });
-	            items[0].upload();
+	            var i,
+	                max = this.concurrentUploadLimit - this._activeUploads.length;
+	            for (i = 0; i < max; i++) {
+	                items[i].upload();
+	            }
 	        };
 	        /**
 	         * Cancels all uploads
@@ -567,8 +574,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	         */
 	
 	
-	        FileUploader.prototype._getTotalProgress = function _getTotalProgress(value) {
-	            if (this.removeAfterUpload) return value || 0;
+	        FileUploader.prototype._getTotalProgress = function _getTotalProgress() {
+	            var value = 0;
+	            var i;
+	            for (i = 0; i < this._activeUploads.length; i++) {
+	                value += this._activeUploads[i].progress;
+	            }
+	            if (this.removeAfterUpload) return value / this._activeUploads.length || 0;
 	
 	            var notUploaded = this.getNotUploadedItems().length;
 	            var uploaded = notUploaded ? this.queue.length - notUploaded : this.queue.length;
@@ -996,11 +1008,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	        FileUploader.prototype._onCompleteItem = function _onCompleteItem(item, response, status, headers) {
+	            this._noLongerUploading(item);
 	            item._onComplete(response, status, headers);
 	            this.onCompleteItem(item, response, status, headers);
 	
 	            var nextItem = this.getReadyItems()[0];
-	            this.isUploading = false;
+	            this.isUploading = this._activeUploads.length > 0;
 	
 	            if (isDefined(nextItem)) {
 	                nextItem.upload();
@@ -1010,6 +1023,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.onCompleteAll();
 	            this.progress = this._getTotalProgress();
 	            this._render();
+	        };
+	        /**
+	            Inner helper
+	        */
+	
+	
+	        FileUploader.prototype._noLongerUploading = function _noLongerUploading(item) {
+	            var i;
+	            for (i = 0; i < this._activeUploads.length; i++) {
+	                if (this._activeUploads[i] === item) {
+	                    this._activeUploads.splice(i, 1);
+	                    return;
+	                }
+	            }
 	        };
 	        /**********************
 	         * STATIC
