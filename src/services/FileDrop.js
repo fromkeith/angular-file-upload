@@ -35,9 +35,6 @@ export default function __identity(FileDirective, $rootScope, $timeout) {
         }, 100);
     }
     angular.element(document.body).bind('dragleave', (e) => {
-        if (e.target !== document.body) {
-            return;
-        }
         leftSomething(e);
     });
     angular.element(document.body).bind('dragover', (e) => {

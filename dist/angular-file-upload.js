@@ -1734,9 +1734,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }, 100);
 	    }
 	    angular.element(document.body).bind('dragleave', function (e) {
-	        if (e.target !== document.body) {
-	            return;
-	        }
 	        leftSomething(e);
 	    });
 	    angular.element(document.body).bind('dragover', function (e) {
