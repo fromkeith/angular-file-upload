@@ -1721,14 +1721,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            $timeout.cancel(lastLeftTimer);
 	            lastLeftTimer = null;
 	        }
-	        console.log('enter', e.target);
 	        document.body.classList.add('nv-body-file-over');
 	    }
 	    function leftSomething(e) {
 	        if (lastLeftTimer) {
 	            $timeout.cancel(lastLeftTimer);
 	        }
-	        console.log('leave', e.target);
 	        lastLeftTimer = $timeout(function () {
 	            $rootScope.$emit('angularFileUpload.body.leave', e);
 	            document.body.classList.remove('nv-body-file-over');
