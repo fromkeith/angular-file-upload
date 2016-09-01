@@ -10,9 +10,43 @@ let {
     } = angular;
 
 
-export default function __identity(FileDirective) {
-    
-    
+export default function __identity(FileDirective, $rootScope, $timeout) {
+
+    function listenForBodyLeave($scope, callback) {
+        let cb = $rootScope.$on('angularFileUpload.body.leave', callback);
+        $scope.$on('$destroy', cb);
+    }
+    let lastLeftTimer;
+    function enteredSomething(e) {
+        if (lastLeftTimer) {
+            $timeout.cancel(lastLeftTimer);
+            lastLeftTimer = null;
+        }
+        document.body.classList.add('nv-body-file-over');
+    }
+    function leftSomething(e) {
+        if (lastLeftTimer) {
+            $timeout.cancel(lastLeftTimer);
+        }
+        lastLeftTimer = $timeout(() => {
+            $rootScope.$emit('angularFileUpload.body.leave', e);
+            document.body.classList.remove('nv-body-file-over');
+            lastLeftTimer = null;
+        }, 100);
+    }
+    angular.element(document.body).bind('dragleave', (e) => {
+        if (e.target !== document.body) {
+            return;
+        }
+        leftSomething(e);
+    });
+    angular.element(document.body).bind('dragover', (e) => {
+        enteredSomething(e);
+    });
+    angular.element(document.body).bind('drop', (e) => {
+        leftSomething(e);
+    });
+
     return class FileDrop extends FileDirective {
         /**
          * Creates instance of {FileDrop} object
@@ -26,13 +60,15 @@ export default function __identity(FileDirective) {
                     $destroy: 'destroy',
                     drop: 'onDrop',
                     dragover: 'onDragOver',
-                    dragleave: 'onDragLeave'
+                    dragleave: 'onDragLeave',
                 },
                 // Name of property inside uploader._directive object
                 prop: 'drop'
             });
-            
             super(extendedOptions);
+            listenForBodyLeave(options.scope, () => {
+                this.onDragLeftBody();
+            });
         }
         /**
          * Returns options
@@ -57,6 +93,7 @@ export default function __identity(FileDirective) {
             this._preventAndStop(event);
             forEach(this.uploader._directives.over, this._removeOverClass, this);
             this.uploader.addToQueue(transfer.files, options, filters);
+            leftSomething(event);
         }
         /**
          * Event handler
@@ -67,6 +104,7 @@ export default function __identity(FileDirective) {
             transfer.dropEffect = 'copy';
             this._preventAndStop(event);
             forEach(this.uploader._directives.over, this._addOverClass, this);
+            enteredSomething(event);
         }
         /**
          * Event handler
@@ -74,6 +112,10 @@ export default function __identity(FileDirective) {
         onDragLeave(event) {
             if(event.currentTarget === this.element[0]) return;
             this._preventAndStop(event);
+            forEach(this.uploader._directives.over, this._removeOverClass, this);
+            leftSomething(event);
+        }
+        onDragLeftBody(event) {
             forEach(this.uploader._directives.over, this._removeOverClass, this);
         }
         /**
@@ -120,5 +162,7 @@ export default function __identity(FileDirective) {
 
 
 __identity.$inject = [
-    'FileDirective'
+    'FileDirective',
+    '$rootScope',
+    '$timeout',
 ];

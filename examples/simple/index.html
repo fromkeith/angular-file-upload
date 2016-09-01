@@ -22,6 +22,7 @@
             .my-drop-zone { border: dotted 3px lightgray; }
             .nv-file-over { border: dotted 3px red; } /* Default class applied to drop zones on over */
             .another-file-over-class { border: dotted 3px green; }
+            .nv-body-file-over { background: rgba(255, 255, 0, 0.5); }
 
             html, body { height: 100%; }
         </style>
@@ -29,7 +30,7 @@
     </head>
 
     <!-- 1. nv-file-drop="" uploader="{Object}" options="{Object}" filters="{String}" -->
-    <body ng-controller="AppController" nv-file-drop="" uploader="uploader" filters="queueLimit, customFilter">
+    <body ng-controller="AppController">
 
         <div class="container">
 
@@ -61,7 +62,7 @@
 
                     <div ng-show="uploader.isHTML5">
                         <!-- 3. nv-file-over uploader="link" over-class="className" -->
-                        <div class="well my-drop-zone" nv-file-over="" uploader="uploader">
+                        <div class="well my-drop-zone" nv-file-over="" nv-file-drop="" uploader="uploader">
                             Base drop zone
                         </div>
 

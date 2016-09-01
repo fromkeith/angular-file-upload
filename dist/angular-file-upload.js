@@ -1709,7 +1709,44 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _angular = angular;
 	var extend = _angular.extend;
 	var forEach = _angular.forEach;
-	function __identity(FileDirective) {
+	function __identity(FileDirective, $rootScope, $timeout) {
+	
+	    function listenForBodyLeave($scope, callback) {
+	        var cb = $rootScope.$on('angularFileUpload.body.leave', callback);
+	        $scope.$on('$destroy', cb);
+	    }
+	    var lastLeftTimer = void 0;
+	    function enteredSomething(e) {
+	        if (lastLeftTimer) {
+	            $timeout.cancel(lastLeftTimer);
+	            lastLeftTimer = null;
+	        }
+	        console.log('enter', e.target);
+	        document.body.classList.add('nv-body-file-over');
+	    }
+	    function leftSomething(e) {
+	        if (lastLeftTimer) {
+	            $timeout.cancel(lastLeftTimer);
+	        }
+	        console.log('leave', e.target);
+	        lastLeftTimer = $timeout(function () {
+	            $rootScope.$emit('angularFileUpload.body.leave', e);
+	            document.body.classList.remove('nv-body-file-over');
+	            lastLeftTimer = null;
+	        }, 100);
+	    }
+	    angular.element(document.body).bind('dragleave', function (e) {
+	        if (e.target !== document.body) {
+	            return;
+	        }
+	        leftSomething(e);
+	    });
+	    angular.element(document.body).bind('dragover', function (e) {
+	        enteredSomething(e);
+	    });
+	    angular.element(document.body).bind('drop', function (e) {
+	        leftSomething(e);
+	    });
 	
 	    return function (_FileDirective) {
 	        _inherits(FileDrop, _FileDirective);
@@ -1735,7 +1772,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                prop: 'drop'
 	            });
 	
-	            return _possibleConstructorReturn(this, _FileDirective.call(this, extendedOptions));
+	            var _this = _possibleConstructorReturn(this, _FileDirective.call(this, extendedOptions));
+	
+	            listenForBodyLeave(options.scope, function () {
+	                _this.onDragLeftBody();
+	            });
+	            return _this;
 	        }
 	        /**
 	         * Returns options
@@ -1764,6 +1806,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._preventAndStop(event);
 	            forEach(this.uploader._directives.over, this._removeOverClass, this);
 	            this.uploader.addToQueue(transfer.files, options, filters);
+	            leftSomething(event);
 	        };
 	        /**
 	         * Event handler
@@ -1776,6 +1819,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            transfer.dropEffect = 'copy';
 	            this._preventAndStop(event);
 	            forEach(this.uploader._directives.over, this._addOverClass, this);
+	            enteredSomething(event);
 	        };
 	        /**
 	         * Event handler
@@ -1785,6 +1829,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        FileDrop.prototype.onDragLeave = function onDragLeave(event) {
 	            if (event.currentTarget === this.element[0]) return;
 	            this._preventAndStop(event);
+	            forEach(this.uploader._directives.over, this._removeOverClass, this);
+	            leftSomething(event);
+	        };
+	
+	        FileDrop.prototype.onDragLeftBody = function onDragLeftBody(event) {
 	            forEach(this.uploader._directives.over, this._removeOverClass, this);
 	        };
 	        /**
@@ -1841,7 +1890,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }(FileDirective);
 	}
 	
-	__identity.$inject = ['FileDirective'];
+	__identity.$inject = ['FileDirective', '$rootScope', '$timeout'];
 
 /***/ },
 /* 9 */
@@ -2001,7 +2050,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	            var object = new FileDrop({
 	                uploader: uploader,
-	                element: element
+	                element: element,
+	                scope: scope
 	            });
 	
 	            object.getOptions = $parse(attributes.options).bind(object, scope);

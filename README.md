@@ -11,6 +11,8 @@ This fork makes the following changes:
 * A fix by @denkan for multiple files being added
 * Nodejs test server for simple example...
 * A bad filter replacement... which I should remove...
+* Adds 'nv-body-file-over' to document.body whenever a file is over something
+* Removes all 'nv-file-over' when drag-leave exits the document.
 
 
 ## About
