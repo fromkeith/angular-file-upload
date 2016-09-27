@@ -37,6 +37,7 @@ export default function __identity() {
             this.size = null;
             this.type = 'like/' + path.slice(path.lastIndexOf('.') + 1).toLowerCase();
             this.name = path.slice(path.lastIndexOf('/') + path.lastIndexOf('\\') + 2);
+            this._source = path;
         }
         /**
          * Creates file like object from object
@@ -48,6 +49,7 @@ export default function __identity() {
             this.size = object.size;
             this.type = object.type;
             this.name = object.name;
+            this._source = object;
         }
     }
 }

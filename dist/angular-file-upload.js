@@ -1153,6 +1153,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.size = null;
 	            this.type = 'like/' + path.slice(path.lastIndexOf('.') + 1).toLowerCase();
 	            this.name = path.slice(path.lastIndexOf('/') + path.lastIndexOf('\\') + 2);
+	            this._source = path;
 	        };
 	        /**
 	         * Creates file like object from object
@@ -1166,6 +1167,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.size = object.size;
 	            this.type = object.type;
 	            this.name = object.name;
+	            this._source = object;
 	        };
 	
 	        return FileLikeObject;
