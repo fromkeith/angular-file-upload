@@ -206,7 +206,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                isUploading: false,
 	                _activeUploads: [],
 	                _nextIndex: 0,
-	                _failFilterIndex: -1,
 	                _directives: { select: [], drop: [], over: [] }
 	            });
 	
@@ -232,42 +231,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	            forEach(list, function (some /*{File|HTMLInputElement|Object}*/) {
 	                var temp = new FileLikeObject(some);
-	                var that = _this;
 	
-	                function failedToAdd() {
-	                    var filter = arrayOfFilters[that._failFilterIndex];
-	                    that._onWhenAddingFileFailed(temp, filter, options);
-	                }
-	
-	                if (_this._isValidFile(temp, arrayOfFilters, options)) {
-	                    var fileItem;
-	                    var delayAdd;
-	
-	                    (function () {
-	                        var addFile = function addFile() {
-	                            addedFileItems.push(fileItem);
-	                            that.queue.push(fileItem);
-	                            that._onAfterAddingFile(fileItem);
-	                        };
-	
-	                        fileItem = new FileItem(_this, some, options);
-	                        delayAdd = _this._onBeforeAddingFile(fileItem);
-	
-	                        if (delayAdd !== undefined && delayAdd.done !== undefined) {
-	                            delayAdd.done(function (err) {
-	                                if (err) {
-	                                    failedToAdd();
-	                                    return;
-	                                }
-	                                addFile();
-	                            });
-	                        } else {
-	                            addFile();
-	                        }
-	                    })();
-	                } else {
-	                    failedToAdd();
-	                }
+	                _this._isValidFile(temp, arrayOfFilters, options).then(function () {
+	                    var fileItem = new FileItem(_this, some, options);
+	                    addedFileItems.push(fileItem);
+	                    _this.queue.push(fileItem);
+	                    _this._onAfterAddingFile(fileItem);
+	                }, function (resp) {
+	                    var filter = arrayOfFilters[resp.index];
+	                    _this._onWhenAddingFileFailed(temp, filter, options);
+	                });
 	            });
 	
 	            if (this.queue.length !== count) {
@@ -648,11 +621,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	        FileUploader.prototype._isValidFile = function _isValidFile(file, filters, options) {
 	            var _this4 = this;
 	
-	            this._failFilterIndex = -1;
-	            return !filters.length ? true : filters.every(function (filter) {
-	                _this4._failFilterIndex++;
-	                return filter.fn.call(_this4, file, options);
+	            var failFilterIndex = -1;
+	            if (!filters.length) {
+	                return Promise.resolve();
+	            }
+	            var results = [];
+	            filters.forEach(function (filter, index) {
+	                if (failFilterIndex !== -1) {
+	                    return;
+	                }
+	                var res = filter.fn.call(_this4, file, options);
+	                if (res) {
+	                    if (res.catch) {
+	                        res.catch(function () {
+	                            failFilterIndex = index;
+	                        });
+	                    }
+	                    results.push(res);
+	                } else {
+	                    failFilterIndex = index;
+	                    results.push(Promise.reject());
+	                }
 	            });
+	            return Promise.all(results).catch(function (resp) {
+	                return Promise.reject({
+	                    index: failFilterIndex,
+	                    resp: resp
+	                });
+	            });;
 	        };
 	        /**
 	         * Checks whether upload successful
@@ -900,15 +896,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        FileUploader.prototype._onWhenAddingFileFailed = function _onWhenAddingFileFailed(item, filter, options) {
 	            this.onWhenAddingFileFailed(item, filter, options);
-	        };
-	        /**
-	         * Inner callback
-	         * @param {FileItem} item
-	         */
-	
-	
-	        FileUploader.prototype._onBeforeAddingFile = function _onBeforeAddingFile(item) {
-	            this.onBeforeAddingFile(item);
 	        };
 	        /**
 	         * Inner callback

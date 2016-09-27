@@ -21,6 +21,18 @@ angular
                 return this.queue.length < 10;
             }
         });
+        uploader.filters.push({
+            name: 'promiseFilter',
+            fn: function(item /*{File|FileLikeObject}*/, options) {
+                return new Promise(function (resolve, reject) {
+                    if (item.name.indexOf('reject-this') !== -1) {
+                        reject();
+                        return;
+                    }
+                    resolve();
+                });
+            }
+        });
 
         // CALLBACKS
 

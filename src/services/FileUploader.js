@@ -41,7 +41,6 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
                 isUploading: false,
                 _activeUploads: [],
                 _nextIndex: 0,
-                _failFilterIndex: -1,
                 _directives: {select: [], drop: [], over: []}
             });
 
@@ -63,36 +62,17 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
 
             forEach(list, (some /*{File|HTMLInputElement|Object}*/) => {
                 var temp = new FileLikeObject(some);
-                var that = this;
 
-                function failedToAdd() {
-                    var filter = arrayOfFilters[that._failFilterIndex];
-                    that._onWhenAddingFileFailed(temp, filter, options);
-                }
-
-                if (this._isValidFile(temp, arrayOfFilters, options)) {
-                    var fileItem = new FileItem(this, some, options);
-
-                    var delayAdd = this._onBeforeAddingFile(fileItem);
-                    function addFile() {
+                this._isValidFile(temp, arrayOfFilters, options)
+                    .then(() => {
+                        var fileItem = new FileItem(this, some, options);
                         addedFileItems.push(fileItem);
-                        that.queue.push(fileItem);
-                        that._onAfterAddingFile(fileItem);
-                    }
-                    if (delayAdd !== undefined && delayAdd.done !== undefined) {
-                        delayAdd.done(function (err) {
-                            if (err) {
-                                failedToAdd();
-                                return;
-                            }
-                            addFile();
-                        });
-                    } else {
-                        addFile();
-                    }
-                } else {
-                    failedToAdd();
-                }
+                        this.queue.push(fileItem);
+                        this._onAfterAddingFile(fileItem);
+                    }, (resp) => {
+                        var filter = arrayOfFilters[resp.index];
+                        this._onWhenAddingFileFailed(temp, filter, options);
+                    });
             });
 
             if(this.queue.length !== count) {
@@ -403,11 +383,35 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @private
          */
         _isValidFile(file, filters, options) {
-            this._failFilterIndex = -1;
-            return !filters.length ? true : filters.every((filter) => {
-                this._failFilterIndex++;
-                return filter.fn.call(this, file, options);
+            let failFilterIndex = -1;
+            if (!filters.length) {
+                return Promise.resolve();
+            }
+            let results = [];
+            filters.forEach((filter, index) => {
+                if (failFilterIndex !== -1) {
+                    return;
+                }
+                let res = filter.fn.call(this, file, options);
+                if (res) {
+                    if (res.catch) {
+                        res.catch(() => {
+                            failFilterIndex = index;
+                        });
+                    }
+                    results.push(res);
+                } else {
+                    failFilterIndex = index;
+                    results.push(Promise.reject());
+                }
             });
+            return Promise.all(results)
+                .catch((resp) => {
+                    return Promise.reject({
+                        index: failFilterIndex,
+                        resp: resp
+                    });
+                });;
         }
         /**
          * Checks whether upload successful
@@ -635,13 +639,6 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          */
         _onWhenAddingFileFailed(item, filter, options) {
             this.onWhenAddingFileFailed(item, filter, options);
-        }
-        /**
-         * Inner callback
-         * @param {FileItem} item
-         */
-        _onBeforeAddingFile(item) {
-            this.onBeforeAddingFile(item);
         }
         /**
          * Inner callback
