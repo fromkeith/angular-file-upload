@@ -1853,6 +1853,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	                            continue;
 	                        }
 	                        var entry = transfer.items[i].webkitGetAsEntry();
+	                        if (entry === null) {
+	                            files.push(transfer.files[i]);
+	                            continue;
+	                        }
 	                        if (!entry.isDirectory) {
 	                            files.push(transfer.files[i]);
 	                            continue;
