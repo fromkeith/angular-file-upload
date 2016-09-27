@@ -19,6 +19,7 @@ export default function __identity(FileUploader, FileOver) {
                 uploader: uploader,
                 element: element
             });
+            console.log('over', element);
 
             object.getOverClass = () => attributes.overClass || object.overClass;
         }

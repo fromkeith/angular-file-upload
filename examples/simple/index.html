@@ -62,13 +62,13 @@
 
                     <div ng-show="uploader.isHTML5">
                         <!-- 3. nv-file-over uploader="link" over-class="className" -->
-                        <div class="well my-drop-zone" nv-file-over="" nv-file-drop="" uploader="uploader">
+                        <div id="base" class="well my-drop-zone" nv-file-drop="" nv-file-over="" uploader="uploader">
                             Base drop zone
                         </div>
 
                         <!-- Example: nv-file-drop="" uploader="{Object}" options="{Object}" filters="{String}" -->
-                        <div nv-file-drop="" uploader="uploader" options="{ url: '/foo' }">
-                            <div nv-file-over="" uploader="uploader" over-class="another-file-over-class" class="well my-drop-zone">
+                        <div id="another" nv-file-drop="" uploader="uploader" options="{ url: '/foo' }">
+                            <div id="another-inside" nv-file-over="" uploader="uploader" over-class="another-file-over-class" class="well my-drop-zone">
                                 Another drop zone with its own settings
                             </div>
                         </div>

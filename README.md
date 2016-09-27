@@ -14,6 +14,9 @@ This fork makes the following changes:
 * Removes all 'nv-file-over' when drag-leave exits the document.
 * Supports chrome folders to be dropped. Just inserts all the files inside the top level directory as file entries.
 * Filters can return promises.
+* Changes the behavior of nv-file-over.
+    * Before it lights up all file over div related to an uploader.
+    * Now it only lights up the div that is currently having its events over it.
 
 
 ## About

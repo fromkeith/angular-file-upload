@@ -22,7 +22,9 @@ export default function __identity(FileDirective) {
             let extendedOptions = extend(options, {
                 // Map of events
                 events: {
-                    $destroy: 'destroy'
+                    $destroy: 'destroy',
+                    dragover: 'onDragOver',
+                    dragleave: 'onDragLeave',
                 },
                 // Name of property inside uploader._directive object
                 prop: 'over',
@@ -51,6 +53,13 @@ export default function __identity(FileDirective) {
         getOverClass() {
             return this.overClass;
         }
+        onDragOver(event) {
+            this.addOverClass();
+        }
+        onDragLeave(event) {
+            this.removeOverClass();
+        }
+
     }
 }
 

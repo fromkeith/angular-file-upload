@@ -172,7 +172,6 @@ export default function __identity(FileDirective, $rootScope, $timeout) {
             if(!this._haveFiles(transfer.types)) return;
             transfer.dropEffect = 'copy';
             this._preventAndStop(event);
-            forEach(this.uploader._directives.over, this._addOverClass, this);
             enteredSomething(event);
         }
         /**
@@ -181,7 +180,6 @@ export default function __identity(FileDirective, $rootScope, $timeout) {
         onDragLeave(event) {
             if(event.currentTarget === this.element[0]) return;
             this._preventAndStop(event);
-            forEach(this.uploader._directives.over, this._removeOverClass, this);
             leftSomething(event);
         }
         onDragLeftBody(event) {

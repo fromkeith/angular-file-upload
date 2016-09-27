@@ -1881,7 +1881,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (!this._haveFiles(transfer.types)) return;
 	            transfer.dropEffect = 'copy';
 	            this._preventAndStop(event);
-	            forEach(this.uploader._directives.over, this._addOverClass, this);
 	            enteredSomething(event);
 	        };
 	        /**
@@ -1892,7 +1891,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        FileDrop.prototype.onDragLeave = function onDragLeave(event) {
 	            if (event.currentTarget === this.element[0]) return;
 	            this._preventAndStop(event);
-	            forEach(this.uploader._directives.over, this._removeOverClass, this);
 	            leftSomething(event);
 	        };
 	
@@ -1997,7 +1995,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var extendedOptions = extend(options, {
 	                // Map of events
 	                events: {
-	                    $destroy: 'destroy'
+	                    $destroy: 'destroy',
+	                    dragover: 'onDragOver',
+	                    dragleave: 'onDragLeave'
 	                },
 	                // Name of property inside uploader._directive object
 	                prop: 'over',
@@ -2031,6 +2031,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        FileOver.prototype.getOverClass = function getOverClass() {
 	            return this.overClass;
+	        };
+	
+	        FileOver.prototype.onDragOver = function onDragOver(event) {
+	            this.addOverClass();
+	        };
+	
+	        FileOver.prototype.onDragLeave = function onDragLeave(event) {
+	            this.removeOverClass();
 	        };
 	
 	        return FileOver;
@@ -2116,6 +2124,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                element: element,
 	                scope: scope
 	            });
+	            console.log('drop', element);
 	
 	            object.getOptions = $parse(attributes.options).bind(object, scope);
 	            object.getFilters = function () {
@@ -2158,6 +2167,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                uploader: uploader,
 	                element: element
 	            });
+	            console.log('over', element);
 	
 	            object.getOverClass = function () {
 	                return attributes.overClass || object.overClass;
