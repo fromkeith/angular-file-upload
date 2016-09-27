@@ -13,6 +13,7 @@ This fork makes the following changes:
 * A bad filter replacement... which I should remove...
 * Adds 'nv-body-file-over' to document.body whenever a file is over something
 * Removes all 'nv-file-over' when drag-leave exits the document.
+* Supports chrome folders to be dropped. Just inserts all the files inside the top level directory as file entries.
 
 
 ## About

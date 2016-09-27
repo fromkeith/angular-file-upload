@@ -79,6 +79,44 @@ export default function __identity(FileDirective, $rootScope, $timeout) {
          */
         getFilters() {
         }
+        /** get all directory entries from a reader */
+        _getEntryResults(reader) {
+            let files = [];
+            function iterate(resolve, reject) {
+                reader.readEntries((results) => {
+                    if (!results.length) {
+                        resolve(files);
+                        return;
+                    }
+                    let waitFor = results.length;
+                    function next() {
+                        waitFor--;
+                        if (waitFor === 0) {
+                            iterate(resolve, reject);
+                        }
+                    }
+                    results.forEach((item) => {
+                        if (!item.isFile) {
+                            next();
+                            return;
+                        }
+                        item.file((f) => {
+                            files.push(f);
+                            next();
+                        }, () => {
+                            // skip
+                            next();
+                        });
+                    });
+                }, function (err) {
+                    reject(err);
+                });
+            }
+            return new Promise((resolve, reject) => {
+                iterate(resolve, reject);
+            });
+        }
+
         /**
          * Event handler
          */
@@ -89,7 +127,37 @@ export default function __identity(FileDirective, $rootScope, $timeout) {
             var filters = this.getFilters();
             this._preventAndStop(event);
             forEach(this.uploader._directives.over, this._removeOverClass, this);
-            this.uploader.addToQueue(transfer.files, options, filters);
+            if (transfer.items) {
+                let waitForExplore = [], spliceOffset = 0, files = [];
+                for (let i = 0; i < transfer.items.length; i++) {
+                    if (!transfer.items[i].webkitGetAsEntry) {
+                        files.push(transfer.files[i]);
+                        continue;
+                    }
+                    let entry = transfer.items[i].webkitGetAsEntry();
+                    if (!entry.isDirectory) {
+                        files.push(transfer.files[i]);
+                        continue;
+                    }
+                    spliceOffset++;
+                    let reader = entry.createReader();
+                    waitForExplore.push(this._getEntryResults(reader));
+                }
+                Promise.all(waitForExplore)
+                    .then((results) => {
+                        for (let i = 0; i < results.length; i++) {
+                            for (let j = 0; j < results[i].length; j++) {
+                                files = files.concat(results[i][j]);
+                            }
+                        }
+                        this.uploader.addToQueue(files, options, filters);
+                    }, (err) => {
+                        console.log('error adding all files from directories', err);
+                        this.uploader.addToQueue(transfer.files, options, filters);
+                    });
+            } else {
+                this.uploader.addToQueue(transfer.files, options, filters);
+            }
             leftSomething(event);
         }
         /**

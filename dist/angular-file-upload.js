@@ -1788,19 +1788,94 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	        FileDrop.prototype.getFilters = function getFilters() {};
+	        /** get all directory entries from a reader */
+	
+	
+	        FileDrop.prototype._getEntryResults = function _getEntryResults(reader) {
+	            var files = [];
+	            function iterate(resolve, reject) {
+	                reader.readEntries(function (results) {
+	                    if (!results.length) {
+	                        resolve(files);
+	                        return;
+	                    }
+	                    var waitFor = results.length;
+	                    function next() {
+	                        waitFor--;
+	                        if (waitFor === 0) {
+	                            iterate(resolve, reject);
+	                        }
+	                    }
+	                    results.forEach(function (item) {
+	                        if (!item.isFile) {
+	                            next();
+	                            return;
+	                        }
+	                        item.file(function (f) {
+	                            files.push(f);
+	                            next();
+	                        }, function () {
+	                            // skip
+	                            next();
+	                        });
+	                    });
+	                }, function (err) {
+	                    reject(err);
+	                });
+	            }
+	            return new Promise(function (resolve, reject) {
+	                iterate(resolve, reject);
+	            });
+	        };
+	
 	        /**
 	         * Event handler
 	         */
 	
 	
 	        FileDrop.prototype.onDrop = function onDrop(event) {
+	            var _this2 = this;
+	
 	            var transfer = this._getTransfer(event);
 	            if (!transfer) return;
 	            var options = this.getOptions();
 	            var filters = this.getFilters();
 	            this._preventAndStop(event);
 	            forEach(this.uploader._directives.over, this._removeOverClass, this);
-	            this.uploader.addToQueue(transfer.files, options, filters);
+	            if (transfer.items) {
+	                (function () {
+	                    var waitForExplore = [],
+	                        spliceOffset = 0,
+	                        files = [];
+	                    for (var i = 0; i < transfer.items.length; i++) {
+	                        if (!transfer.items[i].webkitGetAsEntry) {
+	                            files.push(transfer.files[i]);
+	                            continue;
+	                        }
+	                        var entry = transfer.items[i].webkitGetAsEntry();
+	                        if (!entry.isDirectory) {
+	                            files.push(transfer.files[i]);
+	                            continue;
+	                        }
+	                        spliceOffset++;
+	                        var reader = entry.createReader();
+	                        waitForExplore.push(_this2._getEntryResults(reader));
+	                    }
+	                    Promise.all(waitForExplore).then(function (results) {
+	                        for (var _i = 0; _i < results.length; _i++) {
+	                            for (var j = 0; j < results[_i].length; j++) {
+	                                files = files.concat(results[_i][j]);
+	                            }
+	                        }
+	                        _this2.uploader.addToQueue(files, options, filters);
+	                    }, function (err) {
+	                        console.log('error adding all files from directories', err);
+	                        _this2.uploader.addToQueue(transfer.files, options, filters);
+	                    });
+	                })();
+	            } else {
+	                this.uploader.addToQueue(transfer.files, options, filters);
+	            }
 	            leftSomething(event);
 	        };
 	        /**
