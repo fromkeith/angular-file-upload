@@ -228,11 +228,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var arrayOfFilters = this._getFilters(filters);
 	            var count = this.queue.length;
 	            var addedFileItems = [];
-	
+	            var waitForFilters = [];
 	            forEach(list, function (some /*{File|HTMLInputElement|Object}*/) {
 	                var temp = new FileLikeObject(some);
 	
-	                _this._isValidFile(temp, arrayOfFilters, options).then(function () {
+	                var itemPromise = _this._isValidFile(temp, arrayOfFilters, options).then(function () {
 	                    var fileItem = new FileItem(_this, some, options);
 	                    addedFileItems.push(fileItem);
 	                    _this.queue.push(fileItem);
@@ -241,15 +241,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    var filter = arrayOfFilters[resp.index];
 	                    _this._onWhenAddingFileFailed(temp, filter, options);
 	                });
+	                // convert all fails to success so that we don't short-circuit the Promise.all
+	                waitForFilters.push(itemPromise.catch(function () {}));
 	            });
 	
-	            if (this.queue.length !== count) {
-	                this._onAfterAddingAll(addedFileItems);
-	                this.progress = this._getTotalProgress();
-	            }
+	            Promise.all(waitForFilters).then(function () {
+	                if (_this.queue.length !== count) {
+	                    _this._onAfterAddingAll(addedFileItems);
+	                    _this.progress = _this._getTotalProgress();
+	                }
 	
-	            this._render();
-	            if (this.autoUpload) this.uploadAll();
+	                _this._render();
+	                if (_this.autoUpload) _this.uploadAll();
+	            });
 	        };
 	        /**
 	         * Remove items from the queue. Remove last: index = -1

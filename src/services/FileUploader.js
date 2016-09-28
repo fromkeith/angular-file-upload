@@ -59,11 +59,11 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
             var arrayOfFilters = this._getFilters(filters);
             var count = this.queue.length;
             var addedFileItems = [];
-
+            var waitForFilters = [];
             forEach(list, (some /*{File|HTMLInputElement|Object}*/) => {
                 var temp = new FileLikeObject(some);
 
-                this._isValidFile(temp, arrayOfFilters, options)
+                let itemPromise = this._isValidFile(temp, arrayOfFilters, options)
                     .then(() => {
                         var fileItem = new FileItem(this, some, options);
                         addedFileItems.push(fileItem);
@@ -73,15 +73,20 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
                         var filter = arrayOfFilters[resp.index];
                         this._onWhenAddingFileFailed(temp, filter, options);
                     });
+                // convert all fails to success so that we don't short-circuit the Promise.all
+                waitForFilters.push(itemPromise.catch(() => {}));
             });
 
-            if(this.queue.length !== count) {
-                this._onAfterAddingAll(addedFileItems);
-                this.progress = this._getTotalProgress();
-            }
+            Promise.all(waitForFilters)
+                .then(() => {
+                    if(this.queue.length !== count) {
+                        this._onAfterAddingAll(addedFileItems);
+                        this.progress = this._getTotalProgress();
+                    }
 
-            this._render();
-            if (this.autoUpload) this.uploadAll();
+                    this._render();
+                    if (this.autoUpload) this.uploadAll();
+                });
         }
         /**
          * Remove items from the queue. Remove last: index = -1
