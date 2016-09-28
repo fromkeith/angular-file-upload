@@ -1866,7 +1866,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        }
 	                        _this2.uploader.addToQueue(files, options, filters);
 	                    }, function (err) {
-	                        console.log('error adding all files from directories', err);
 	                        _this2.uploader.addToQueue(transfer.files, options, filters);
 	                    });
 	                })();
@@ -2128,7 +2127,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                element: element,
 	                scope: scope
 	            });
-	            console.log('drop', element);
 	
 	            object.getOptions = $parse(attributes.options).bind(object, scope);
 	            object.getFilters = function () {
@@ -2171,7 +2169,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                uploader: uploader,
 	                element: element
 	            });
-	            console.log('over', element);
 	
 	            object.getOverClass = function () {
 	                return attributes.overClass || object.overClass;

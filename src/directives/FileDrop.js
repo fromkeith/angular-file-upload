@@ -22,7 +22,6 @@ export default function __identity($parse, FileUploader, FileDrop) {
                 element: element,
                 scope: scope,
             });
-            console.log('drop', element);
 
             object.getOptions = $parse(attributes.options).bind(object, scope);
             object.getFilters = () => attributes.filters;

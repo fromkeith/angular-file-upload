@@ -156,7 +156,6 @@ export default function __identity(FileDirective, $rootScope, $timeout) {
                         }
                         this.uploader.addToQueue(files, options, filters);
                     }, (err) => {
-                        console.log('error adding all files from directories', err);
                         this.uploader.addToQueue(transfer.files, options, filters);
                     });
             } else {
