@@ -19,7 +19,7 @@
         <script src="controllers.js"></script>
 
         <style>
-            .my-drop-zone { border: dotted 3px lightgray; }
+            .my-drop-zone { border: dotted 3px lightgray; transition: 0.1s linear; }
             .nv-file-over { border: dotted 3px red; } /* Default class applied to drop zones on over */
             .another-file-over-class { border: dotted 3px green; }
             .nv-body-file-over { background: rgba(255, 255, 0, 0.5); }
@@ -64,6 +64,11 @@
                         <!-- 3. nv-file-over uploader="link" over-class="className" -->
                         <div id="base" class="well my-drop-zone" nv-file-drop="" nv-file-over="" uploader="uploader">
                             Base drop zone
+                            <input type="text" value="hello" />
+                            <button>What?</button>
+                            <div class="dropthing" style="background:#f00;width:100px;height:100px">
+                                <input type="text" value="there" />
+                            </div>
                         </div>
 
                         <!-- Example: nv-file-drop="" uploader="{Object}" options="{Object}" filters="{String}" -->

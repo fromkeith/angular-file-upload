@@ -1999,8 +1999,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                // Map of events
 	                events: {
 	                    $destroy: 'destroy',
-	                    dragover: 'onDragOver',
-	                    dragleave: 'onDragLeave'
+	                    dragleave: 'onDragLeave',
+	                    dragenter: 'onDragEnter'
 	                },
 	                // Name of property inside uploader._directive object
 	                prop: 'over',
@@ -2008,7 +2008,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	                overClass: 'nv-file-over'
 	            });
 	
-	            return _possibleConstructorReturn(this, _FileDirective.call(this, extendedOptions));
+	            var _this = _possibleConstructorReturn(this, _FileDirective.call(this, extendedOptions));
+	
+	            _this.enterCounter = 0;
+	            return _this;
 	        }
 	        /**
 	         * Adds over class
@@ -2036,12 +2039,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return this.overClass;
 	        };
 	
-	        FileOver.prototype.onDragOver = function onDragOver(event) {
-	            this.addOverClass();
+	        FileOver.prototype.onDragLeave = function onDragLeave(event) {
+	            this.enterCounter--;
+	            if (this.enterCounter === 0) {
+	                this.removeOverClass();
+	            }
 	        };
 	
-	        FileOver.prototype.onDragLeave = function onDragLeave(event) {
-	            this.removeOverClass();
+	        FileOver.prototype.onDragEnter = function onDragEnter(event) {
+	            if (this.enterCounter === 0) {
+	                this.addOverClass();
+	            }
+	            this.enterCounter++;
 	        };
 	
 	        return FileOver;

@@ -23,16 +23,16 @@ export default function __identity(FileDirective) {
                 // Map of events
                 events: {
                     $destroy: 'destroy',
-                    dragover: 'onDragOver',
                     dragleave: 'onDragLeave',
+                    dragenter: 'onDragEnter',
                 },
                 // Name of property inside uploader._directive object
                 prop: 'over',
                 // Over class
                 overClass: 'nv-file-over'
             });
-            
             super(extendedOptions);
+            this.enterCounter = 0;
         }
         /**
          * Adds over class
@@ -53,11 +53,17 @@ export default function __identity(FileDirective) {
         getOverClass() {
             return this.overClass;
         }
-        onDragOver(event) {
-            this.addOverClass();
-        }
         onDragLeave(event) {
-            this.removeOverClass();
+            this.enterCounter--;
+            if (this.enterCounter === 0) {
+                this.removeOverClass();
+            }
+        }
+        onDragEnter(event) {
+            if (this.enterCounter === 0) {
+                this.addOverClass();
+            }
+            this.enterCounter++;
         }
 
     }
