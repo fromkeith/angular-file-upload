@@ -1,5 +1,5 @@
 /*
- angular-file-upload v2.3.3
+ angular-file-upload v2.3.4
  https://github.com/nervgh/angular-file-upload
 */
 
@@ -2027,6 +2027,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	        FileOver.prototype.removeOverClass = function removeOverClass() {
+	            this.enterCounter = 0;
 	            this.element.removeClass(this.getOverClass());
 	        };
 	        /**

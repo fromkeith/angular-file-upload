@@ -44,6 +44,7 @@ export default function __identity(FileDirective) {
          * Removes over class
          */
         removeOverClass() {
+            this.enterCounter = 0;
             this.element.removeClass(this.getOverClass());
         }
         /**
