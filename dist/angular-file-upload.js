@@ -1,5 +1,5 @@
 /*
- angular-file-upload v2.3.4
+ angular-file-upload v2.3.5
  https://github.com/nervgh/angular-file-upload
 */
 
@@ -263,10 +263,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        FileUploader.prototype.removeFromQueue = function removeFromQueue(value) {
 	            var index = this.getIndexOfItem(value);
+	            if (index < 0 || index >= this.queue.length) {
+	                return;
+	            }
 	            var item = this.queue[index];
-	            if (item.isUploading) item.cancel();
-	            this.queue.splice(index, 1);
-	            item._destroy();
+	            if (item) {
+	                if (item.isUploading) item.cancel();
+	                this.queue.splice(index, 1);
+	                item._destroy();
+	            }
 	            this.progress = this._getTotalProgress();
 	        };
 	        /**
@@ -1829,17 +1834,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	        FileDrop.prototype.onDrop = function onDrop(event) {
 	            var _this2 = this;
 	
+	            this._preventAndStop(event);
 	            var transfer = this._getTransfer(event);
 	            if (!transfer) return;
 	            var options = this.getOptions();
 	            var filters = this.getFilters();
-	            this._preventAndStop(event);
 	            forEach(this.uploader._directives.over, this._removeOverClass, this);
 	            if (transfer.items) {
 	                (function () {
 	                    var waitForExplore = [],
 	                        spliceOffset = 0,
 	                        files = [];
+	                    // if its 1 directory, pull its name
+	                    if (transfer.items.length === 1) {
+	                        if (transfer.items[0].webkitGetAsEntry && transfer.items[0].webkitGetAsEntry().isDirectory) {
+	                            if (!options) {
+	                                options = {};
+	                            }
+	                            options._ngFile_folderName = transfer.items[0].webkitGetAsEntry().name;
+	                        }
+	                    }
 	                    for (var i = 0; i < transfer.items.length; i++) {
 	                        if (!transfer.items[i].webkitGetAsEntry) {
 	                            files.push(transfer.files[i]);
@@ -1880,10 +1894,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	        FileDrop.prototype.onDragOver = function onDragOver(event) {
+	            this._preventAndStop(event);
 	            var transfer = this._getTransfer(event);
 	            if (!this._haveFiles(transfer.types)) return;
 	            transfer.dropEffect = 'copy';
-	            this._preventAndStop(event);
 	            enteredSomething(event);
 	        };
 	        /**

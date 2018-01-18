@@ -13,6 +13,7 @@ This fork makes the following changes:
 * Adds 'nv-body-file-over' to document.body whenever a file is over something
 * Removes all 'nv-file-over' when drag-leave exits the document.
 * Supports chrome folders to be dropped. Just inserts all the files inside the top level directory as file entries.
+    * Adds a  _"_ngFile_folderName"_ parameter to the file so the folder name can be determined, if desired.
 * Filters can return promises.
 * Changes the behavior of nv-file-over.
     * Before it lights up all file over div related to an uploader.

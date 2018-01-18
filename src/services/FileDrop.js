@@ -121,14 +121,24 @@ export default function __identity(FileDirective, $rootScope, $timeout) {
          * Event handler
          */
         onDrop(event) {
+            this._preventAndStop(event);
             var transfer = this._getTransfer(event);
             if(!transfer) return;
             var options = this.getOptions();
             var filters = this.getFilters();
-            this._preventAndStop(event);
             forEach(this.uploader._directives.over, this._removeOverClass, this);
             if (transfer.items) {
                 let waitForExplore = [], spliceOffset = 0, files = [];
+                // if its 1 directory, pull its name
+                if (transfer.items.length === 1) {
+                    if (transfer.items[0].webkitGetAsEntry &&
+                        transfer.items[0].webkitGetAsEntry().isDirectory) {
+                        if (!options) {
+                            options = {};
+                        }
+                        options._ngFile_folderName = transfer.items[0].webkitGetAsEntry().name;
+                    }
+                }
                 for (let i = 0; i < transfer.items.length; i++) {
                     if (!transfer.items[i].webkitGetAsEntry) {
                         files.push(transfer.files[i]);
@@ -167,10 +177,10 @@ export default function __identity(FileDirective, $rootScope, $timeout) {
          * Event handler
          */
         onDragOver(event) {
+            this._preventAndStop(event);
             var transfer = this._getTransfer(event);
             if(!this._haveFiles(transfer.types)) return;
             transfer.dropEffect = 'copy';
-            this._preventAndStop(event);
             enteredSomething(event);
         }
         /**
