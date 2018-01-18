@@ -94,10 +94,15 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          */
         removeFromQueue(value) {
             var index = this.getIndexOfItem(value);
+            if (index < 0 || index >= this.queue.length) {
+                return;
+            }
             var item = this.queue[index];
-            if(item.isUploading) item.cancel();
-            this.queue.splice(index, 1);
-            item._destroy();
+            if (item) {
+                if(item.isUploading) item.cancel();
+                this.queue.splice(index, 1);
+                item._destroy();
+            }
             this.progress = this._getTotalProgress();
         }
         /**
