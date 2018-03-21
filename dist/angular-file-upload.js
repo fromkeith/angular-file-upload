@@ -1847,7 +1847,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        files = [];
 	                    // if its 1 directory, pull its name
 	                    if (transfer.items.length === 1) {
-	                        if (transfer.items[0].webkitGetAsEntry && transfer.items[0].webkitGetAsEntry().isDirectory) {
+	                        if (transfer.items[0].webkitGetAsEntry && transfer.items[0].webkitGetAsEntry() !== null && transfer.items[0].webkitGetAsEntry().isDirectory) {
 	                            if (!options) {
 	                                options = {};
 	                            }
